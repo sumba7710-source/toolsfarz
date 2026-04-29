@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FARZHDYTL Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --card: #16161f;
+    --border: #2a2a3a;
+    --accent: #00f5c8;
+    --accent2: #7c5cfc;
+    --accent3: #ff6b6b;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ---- NOISE OVERLAY ---- */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* ---- HEADER ---- */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ---- HAMBURGER ---- */
+  #hamburger {
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    transition: border-color 0.2s;
+  }
+  #hamburger:hover { border-color: var(--accent); }
+  #hamburger span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+    transition: all 0.3s;
+    transform-origin: center;
+  }
+  #hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  #hamburger.open span:nth-child(2) { opacity: 0; }
+  #hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* ---- SIDEBAR ---- */
+  #sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 260px;
+    height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    z-index: 200;
+    transition: left 0.3s cubic-bezier(.4,0,.2,1);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0;
+    box-shadow: 4px 0 30px rgba(0,0,0,0.5);
+  }
+  #sidebar.open { left: 0; }
+
+  .sidebar-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    padding: 0 20px 16px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .nav-item:hover, .nav-item.active {
+    color: var(--text);
+    background: rgba(0,245,200,0.05);
+    border-left-color: var(--accent);
+  }
+  .nav-item .nav-icon { font-size: 1.2rem; }
+
+  #overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 150;
+    backdrop-filter: blur(2px);
+  }
+  #overlay.show { display: block; }
+
+  /* ---- MAIN ---- */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 20px;
+  }
+
+  .tool-section {
+    display: none;
+    animation: fadeUp 0.4s ease;
+  }
+  .tool-section.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    margin-bottom: 28px;
+  }
+  .section-header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .section-header p {
+    color: var(--muted);
+    margin-top: 6px;
+    font-size: 0.95rem;
+  }
+  .tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .tag-green { background: rgba(0,245,200,0.1); color: var(--accent); border: 1px solid rgba(0,245,200,0.2); }
+  .tag-purple { background: rgba(124,92,252,0.1); color: var(--accent2); border: 1px solid rgba(124,92,252,0.2); }
+  .tag-red { background: rgba(255,107,107,0.1); color: var(--accent3); border: 1px solid rgba(255,107,107,0.2); }
+  .tag-blue { background: rgba(0,160,255,0.1); color: #00a0ff; border: 1px solid rgba(0,160,255,0.2); }
+
+  /* ---- CARD ---- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  /* ---- INPUTS ---- */
+  input[type="text"], input[type="number"], textarea, select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 12px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 12px;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+  label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.05em; text-transform: uppercase; }
+  textarea { resize: vertical; min-height: 160px; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 22px;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    letter-spacing: 0.03em;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #0a0a0f;
+  }
+  .btn-primary:hover { filter: brightness(1.15); transform: translateY(-1px); }
+  .btn-secondary {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--text);
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger {
+    background: var(--accent3);
+    color: #fff;
+  }
+
+  /* ---- VERCEL TOOL ---- */
+  #result-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    display: none;
+    margin-top: 16px;
+    position: relative;
+    max-height: 380px;
+    overflow-y: auto;
+    color: var(--accent);
+  }
+  .copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+  }
+
+  /* ---- CALCULATOR ---- */
+  .calc-display {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 18px 14px;
+    margin-bottom: 16px;
+    text-align: right;
+  }
+  .calc-expr {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    min-height: 20px;
+    word-break: break-all;
+  }
+  .calc-result {
+    font-size: 2.4rem;
+    font-weight: 800;
+    font-family: 'Space Mono', monospace;
+    color: var(--text);
+    word-break: break-all;
+    margin-top: 4px;
+  }
+  .calc-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .calc-btn {
+    padding: 16px 8px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    transition: all 0.15s;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .calc-btn:hover { background: var(--border); transform: scale(0.97); }
+  .calc-btn.op { color: var(--accent); border-color: rgba(0,245,200,0.3); }
+  .calc-btn.eq { background: var(--accent); color: #0a0a0f; border-color: var(--accent); grid-column: span 2; }
+  .calc-btn.eq:hover { filter: brightness(1.15); }
+  .calc-btn.clr { color: var(--accent3); border-color: rgba(255,107,107,0.3); }
+  .calc-btn.zero { grid-column: span 2; }
+
+  /* ---- BIOGRAFI ---- */
+  .bio-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 36px 24px;
+    border-radius: var(--radius);
+    background: var(--card);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .bio-card::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: -60px;
+    width: 180px; height: 180px;
+    background: radial-gradient(circle, rgba(0,245,200,0.12), transparent 70%);
+    border-radius: 50%;
+  }
+  .bio-card::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; right: -60px;
+    width: 180px; height: 180px;
+    background: radial-gradient(circle, rgba(124,92,252,0.12), transparent 70%);
+    border-radius: 50%;
+  }
+  .avatar {
+    width: 90px; height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    margin-bottom: 16px;
+    box-shadow: 0 0 30px rgba(0,245,200,0.25);
+    position: relative; z-index: 1;
+  }
+  .bio-name {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    position: relative; z-index: 1;
+  }
+  .bio-subtitle {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 6px;
+    position: relative; z-index: 1;
+  }
+  .bio-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 20px;
+  }
+  .bio-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .bio-item-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .bio-item-val {
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .skill-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .chip {
+    background: rgba(124,92,252,0.12);
+    border: 1px solid rgba(124,92,252,0.25);
+    color: var(--accent2);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  /* ---- TOOLS LAIN ---- */
+  .tool-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .mini-tool {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .mini-tool:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,245,200,0.08); }
+  .mini-tool .mt-icon { font-size: 2rem; margin-bottom: 10px; }
+  .mini-tool .mt-name { font-weight: 700; font-size: 0.9rem; }
+  .mini-tool .mt-desc { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+  /* ---- QR TOOL ---- */
+  #qr-output { text-align: center; margin-top: 16px; }
+  #qr-output img { border-radius: 10px; border: 3px solid var(--accent); }
+
+  /* ---- WORD COUNT ---- */
+  .wc-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+  .wc-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .wc-num { font-size: 2rem; font-weight: 800; font-family: 'Space Mono', monospace; color: var(--accent); }
+  .wc-label { font-size: 0.75rem; color: var(--muted); font-weight: 700; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* ---- AGE CALC ---- */
+  .age-result { font-size: 3rem; font-weight: 800; font-family: 'Space Mono', monospace; color: var(--accent); text-align: center; padding: 20px 0 8px; }
+  .age-detail { text-align: center; color: var(--muted); font-size: 0.9rem; }
+
+  /* ---- PASSWORD GEN ---- */
+  .pw-output {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    word-break: break-all;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+  }
+  .pw-opts { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+  .pw-opts label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text); text-transform: none; letter-spacing: 0; margin: 0; font-weight: 600; }
+  .pw-opts input[type=checkbox] { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
+
+  /* ---- COLOR PICKER ---- */
+  .color-preview {
+    width: 100%;
+    height: 80px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    background: #00f5c8;
+    transition: background 0.2s;
+  }
+  .color-codes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .color-code-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .color-code-box:hover { border-color: var(--accent); }
+  .color-code-box .cc-label { font-size: 0.65rem; color: var(--muted); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+  input[type="color"] { width: 60px; height: 40px; border: none; background: none; cursor: pointer; padding: 0; }
+
+  /* ---- SCROLLBAR ---- */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width: 500px) {
+    .bio-grid { grid-template-columns: 1fr; }
+    .wc-stats { grid-template-columns: 1fr 1fr; }
+    .color-codes { grid-template-columns: 1fr; }
+    .calc-result { font-size: 1.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="overlay" onclick="closeSidebar()"></div>
+<nav id="sidebar">
+  <div class="sidebar-title">🛠 FARZHDYTL Menu</div>
+  <div class="nav-item active" onclick="showSection('home')">
+    <span class="nav-icon">🏠</span> Home
+  </div>
+  <div class="nav-item" onclick="showSection('vercel')">
+    <span class="nav-icon">▲</span> Deploy Vercel
+  </div>
+  <div class="nav-item" onclick="showSection('calculator')">
+    <span class="nav-icon">🧮</span> Kalkulator
+  </div>
+  <div class="nav-item" onclick="showSection('bio')">
+    <span class="nav-icon">👤</span> Biografi
+  </div>
+  <div class="nav-item" onclick="showSection('qr')">
+    <span class="nav-icon">📷</span> QR Generator
+  </div>
+  <div class="nav-item" onclick="showSection('wordcount')">
+    <span class="nav-icon">📝</span> Word Counter
+  </div>
+  <div class="nav-item" onclick="showSection('age')">
+    <span class="nav-icon">🎂</span> Hitung Umur
+  </div>
+  <div class="nav-item" onclick="showSection('password')">
+    <span class="nav-icon">🔐</span> Password Gen
+  </div>
+  <div class="nav-item" onclick="showSection('color')">
+    <span class="nav-icon">🎨</span> Color Picker
+  </div>
+</nav>
+
+<!-- HEADER -->
+<header>
+  <button id="hamburger" onclick="toggleSidebar()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="logo">FARZHDYTL</div>
+</header>
+
+<main>
+
+  <!-- HOME -->
+  <div class="tool-section active" id="section-home">
+    <div class="section-header">
+      <div class="tag tag-green">v1.0</div>
+      <h1>FARZHDYTL Tools 🛠</h1>
+      <p>Toolkit serba bisa untuk developer muda. Buka menu di pojok kiri untuk akses semua tools.</p>
+    </div>
+    <div class="tool-grid">
+      <div class="mini-tool" onclick="showSection('vercel')">
+        <div class="mt-icon">▲</div>
+        <div class="mt-name">Deploy Vercel</div>
+        <div class="mt-desc">Generate file siap deploy</div>
+      </div>
+      <div class="mini-tool" onclick="showSection('calculator')">
+        <div class="mt-icon">🧮</div>
+        <div class="mt-name">Kalkulator</div>
+        <div class="mt-desc">Hitung apa saja</div>
+      </div>
+      <div class="mini-tool" onclick="showSection('bio')">
+        <div class="mt-icon">👤</div>
+        <div class="mt-name">Biografi</div>
+        <div class="mt-desc">Profil Fachri Hidayatullah</div>
+      </div>
+      <div class="mini-tool" onclick="showSection('qr')">
+        <div class="mt-icon">📷</div>
+        <div class="mt-name">QR Generator</div>
+        <div class="mt-desc">Buat QR Code instan</div>
+      </div>
+      <div class="mini-tool" onclick="showSection('wordcount')">
+        <div class="mt-icon">📝</div>
+        <div class="mt-name">Word Counter</div>
+        <div class="mt-desc">Hitung kata & karakter</div>
+      </div>
+      <div class="mini-tool" onclick="showSection('age')">
+        <div class="mt-icon">🎂</div>
+        <div class="mt-name">Hitung Umur</div>
+        <div class="mt-desc">Kalkulator usia akurat</div>
+      </div>
+      <div class="mini-tool" onclick="showSection('password')">
+        <div class="mt-icon">🔐</div>
+        <div class="mt-name">Password Gen</div>
+        <div class="mt-desc">Buat password kuat</div>
+      </div>
+      <div class="mini-tool" onclick="showSection('color')">
+        <div class="mt-icon">🎨</div>
+        <div class="mt-name">Color Picker</div>
+        <div class="mt-desc">Konversi kode warna</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERCEL TOOL -->
+  <div class="tool-section" id="section-vercel">
+    <div class="section-header">
+      <div class="tag tag-purple">▲ Vercel</div>
+      <h1>Deploy ke Vercel</h1>
+      <p>Masukkan nama proyek dan konten HTML, lalu dapatkan instruksi deploy siap pakai.</p>
+    </div>
+    <div class="card">
+      <label>Nama Proyek</label>
+      <input type="text" id="v-name" placeholder="contoh: portofolio-fachri">
+
+      <label>Konten index.html</label>
+      <textarea id="v-html" placeholder="&lt;!DOCTYPE html&gt;&#10;&lt;html&gt;&#10;  &lt;body&gt;&#10;    &lt;h1&gt;Hello World!&lt;/h1&gt;&#10;  &lt;/body&gt;&#10;&lt;/html&gt;"></textarea>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="generateVercel()">⚡ Generate Files</button>
+        <button class="btn btn-secondary" onclick="clearVercel()">🗑 Reset</button>
+      </div>
+
+      <div id="result-box">
+        <button class="btn btn-secondary copy-btn" onclick="copyResult()">📋 Copy</button>
+        <div id="result-content"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="tag tag-green" style="margin-bottom:12px;">📖 Cara Deploy</div>
+      <ol style="padding-left:20px;line-height:2;color:var(--muted);font-size:0.9rem;">
+        <li>Generate file di atas, lalu copy isi <code style="color:var(--accent)">index.html</code></li>
+        <li>Buat folder baru di komputer kamu</li>
+        <li>Simpan sebagai <code style="color:var(--accent)">index.html</code></li>
+        <li>Pergi ke <strong style="color:var(--text)">vercel.com</strong> → Login / Daftar</li>
+        <li>Klik <strong style="color:var(--text)">Add New → Project</strong></li>
+        <li>Upload folder atau sambungkan GitHub</li>
+        <li>Klik <strong style="color:var(--text)">Deploy</strong> — selesai! 🎉</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- KALKULATOR -->
+  <div class="tool-section" id="section-calculator">
+    <div class="section-header">
+      <div class="tag tag-blue">🧮 Kalkulator</div>
+      <h1>Kalkulator</h1>
+      <p>Kalkulator standar dengan tampilan keren.</p>
+    </div>
+    <div class="card" style="max-width:360px;margin:0 auto;">
+      <div class="calc-display">
+        <div class="calc-expr" id="calc-expr"></div>
+        <div class="calc-result" id="calc-result">0</div>
+      </div>
+      <div class="calc-grid">
+        <button class="calc-btn clr" onclick="calcClear()">AC</button>
+        <button class="calc-btn op" onclick="calcSign()">+/-</button>
+        <button class="calc-btn op" onclick="calcPercent()">%</button>
+        <button class="calc-btn op" onclick="calcOp('/')">÷</button>
+
+        <button class="calc-btn" onclick="calcNum('7')">7</button>
+        <button class="calc-btn" onclick="calcNum('8')">8</button>
+        <button class="calc-btn" onclick="calcNum('9')">9</button>
+        <button class="calc-btn op" onclick="calcOp('*')">×</button>
+
+        <button class="calc-btn" onclick="calcNum('4')">4</button>
+        <button class="calc-btn" onclick="calcNum('5')">5</button>
+        <button class="calc-btn" onclick="calcNum('6')">6</button>
+        <button class="calc-btn op" onclick="calcOp('-')">−</button>
+
+        <button class="calc-btn" onclick="calcNum('1')">1</button>
+        <button class="calc-btn" onclick="calcNum('2')">2</button>
+        <button class="calc-btn" onclick="calcNum('3')">3</button>
+        <button class="calc-btn op" onclick="calcOp('+')">+</button>
+
+        <button class="calc-btn zero" onclick="calcNum('0')">0</button>
+        <button class="calc-btn" onclick="calcDot()">.</button>
+        <button class="calc-btn eq" onclick="calcEqual()">=</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BIOGRAFI -->
+  <div class="tool-section" id="section-bio">
+    <div class="section-header">
+      <div class="tag tag-purple">👤 Profil</div>
+      <h1>Biografi</h1>
+      <p>Profil lengkap sang developer muda dari NTT.</p>
+    </div>
+
+    <div class="bio-card">
+      <div class="avatar">👨‍💻</div>
+      <div class="bio-name">Fachri Hidayatullah</div>
+      <div class="bio-subtitle">Web Developer · MAN Sumba Barat</div>
+    </div>
+
+    <div class="bio-grid">
+      <div class="bio-item">
+        <div class="bio-item-label">📅 TTL</div>
+        <div class="bio-item-val">Waikabubak, 7 Juli 2010</div>
+      </div>
+      <div class="bio-item">
+        <div class="bio-item-label">🏫 Sekolah</div>
+        <div class="bio-item-val">MAN Sumba Barat</div>
+      </div>
+      <div class="bio-item">
+        <div class="bio-item-label">🎯 Cita-cita</div>
+        <div class="bio-item-val">Web Developer</div>
+      </div>
+      <div class="bio-item">
+        <div class="bio-item-label">🌍 Asal</div>
+        <div class="bio-item-val">Waikabubak, NTT</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <div class="bio-item-label" style="margin-bottom:10px;">⚡ Hobi & Minat</div>
+      <div class="skill-chips">
+        <span class="chip">💻 Coding</span>
+        <span class="chip">🌐 Web Development</span>
+        <span class="chip">🎨 UI Design</span>
+        <span class="chip">📱 App Development</span>
+        <span class="chip">🔧 Problem Solving</span>
+        <span class="chip">📖 Self-learning</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="bio-item-label" style="margin-bottom:10px;">📊 Umur Sekarang</div>
+      <div id="bio-age" style="font-size:1.4rem;font-weight:800;color:var(--accent);font-family:'Space Mono',monospace;"></div>
+      <div id="bio-age-detail" style="color:var(--muted);font-size:0.85rem;margin-top:4px;"></div>
+    </div>
+  </div>
+
+  <!-- QR GENERATOR -->
+  <div class="tool-section" id="section-qr">
+    <div class="section-header">
+      <div class="tag tag-green">📷 QR</div>
+      <h1>QR Code Generator</h1>
+      <p>Generate QR Code dari teks, URL, atau apa saja secara instan.</p>
+    </div>
+    <div class="card">
+      <label>Teks / URL</label>
+      <input type="text" id="qr-input" placeholder="https://example.com atau teks apa saja...">
+      <label>Ukuran</label>
+      <select id="qr-size">
+        <option value="200">Kecil (200px)</option>
+        <option value="300" selected>Sedang (300px)</option>
+        <option value="400">Besar (400px)</option>
+      </select>
+      <button class="btn btn-primary" onclick="generateQR()">📷 Generate QR</button>
+      <div id="qr-output"></div>
+    </div>
+  </div>
+
+  <!-- WORD COUNTER -->
+  <div class="tool-section" id="section-wordcount">
+    <div class="section-header">
+      <div class="tag tag-blue">📝 Text</div>
+      <h1>Word Counter</h1>
+      <p>Hitung kata, karakter, kalimat, dan paragraf dari teks kamu.</p>
+    </div>
+    <div class="card">
+      <label>Masukkan Teks</label>
+      <textarea id="wc-input" placeholder="Ketik atau paste teks di sini..." oninput="countWords()" style="min-height:200px;"></textarea>
+      <div class="wc-stats">
+        <div class="wc-stat"><div class="wc-num" id="wc-words">0</div><div class="wc-label">Kata</div></div>
+        <div class="wc-stat"><div class="wc-num" id="wc-chars">0</div><div class="wc-label">Karakter</div></div>
+        <div class="wc-stat"><div class="wc-num" id="wc-chars-no">0</div><div class="wc-label">Tanpa Spasi</div></div>
+        <div class="wc-stat"><div class="wc-num" id="wc-sent">0</div><div class="wc-label">Kalimat</div></div>
+        <div class="wc-stat"><div class="wc-num" id="wc-para">0</div><div class="wc-label">Paragraf</div></div>
+        <div class="wc-stat"><div class="wc-num" id="wc-read">0</div><div class="wc-label">Menit Baca</div></div>
+      </div>
+      <button class="btn btn-secondary" style="margin-top:14px;" onclick="document.getElementById('wc-input').value='';countWords()">🗑 Hapus</button>
+    </div>
+  </div>
+
+  <!-- HITUNG UMUR -->
+  <div class="tool-section" id="section-age">
+    <div class="section-header">
+      <div class="tag tag-red">🎂 Umur</div>
+      <h1>Hitung Umur</h1>
+      <p>Hitung usia tepat berdasarkan tanggal lahir.</p>
+    </div>
+    <div class="card">
+      <label>Tanggal Lahir</label>
+      <input type="text" id="age-input" placeholder="YYYY-MM-DD (contoh: 2010-07-07)" oninput="calculateAge()">
+      <div id="age-result-box" style="display:none;">
+        <div class="age-result" id="age-years"></div>
+        <div class="age-detail" id="age-detail"></div>
+        <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+          <div class="wc-stat"><div class="wc-num" id="age-months" style="font-size:1.5rem;"></div><div class="wc-label">Bulan</div></div>
+          <div class="wc-stat"><div class="wc-num" id="age-days" style="font-size:1.5rem;"></div><div class="wc-label">Hari</div></div>
+          <div class="wc-stat"><div class="wc-num" id="age-next" style="font-size:1.1rem;color:var(--accent2)"></div><div class="wc-label">Hari ke HBD</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASSWORD GENERATOR -->
+  <div class="tool-section" id="section-password">
+    <div class="section-header">
+      <div class="tag tag-purple">🔐 Security</div>
+      <h1>Password Generator</h1>
+      <p>Buat password kuat dan aman secara instan.</p>
+    </div>
+    <div class="card">
+      <div class="pw-output" id="pw-output">Klik Generate ↓</div>
+      <label>Panjang Password: <span id="pw-len-val">16</span> karakter</label>
+      <input type="range" id="pw-len" min="6" max="64" value="16" oninput="document.getElementById('pw-len-val').textContent=this.value" style="background:var(--border);border:none;padding:6px 0;margin-bottom:14px;">
+      <div class="pw-opts">
+        <label><input type="checkbox" id="pw-upper" checked> A–Z (Huruf Besar)</label>
+        <label><input type="checkbox" id="pw-lower" checked> a–z (Huruf Kecil)</label>
+        <label><input type="checkbox" id="pw-num" checked> 0–9 (Angka)</label>
+        <label><input type="checkbox" id="pw-sym"> !@#$ (Simbol)</label>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-primary" onclick="generatePassword()">🔑 Generate</button>
+        <button class="btn btn-secondary" onclick="copyPw()">📋 Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLOR PICKER -->
+  <div class="tool-section" id="section-color">
+    <div class="section-header">
+      <div class="tag tag-green">🎨 Color</div>
+      <h1>Color Picker</h1>
+      <p>Pilih warna dan dapatkan kode HEX, RGB, dan HSL sekaligus.</p>
+    </div>
+    <div class="card">
+      <div class="color-preview" id="color-preview"></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <input type="color" id="color-input" value="#00f5c8" oninput="updateColor(this.value)">
+        <input type="text" id="color-hex-in" placeholder="#00f5c8" oninput="hexInputChange()" style="flex:1;margin:0;">
+      </div>
+      <div class="color-codes">
+        <div class="color-code-box" onclick="copyColor('hex')" title="Klik untuk copy">
+          <div class="cc-label">HEX</div>
+          <div id="c-hex">#00f5c8</div>
+        </div>
+        <div class="color-code-box" onclick="copyColor('rgb')" title="Klik untuk copy">
+          <div class="cc-label">RGB</div>
+          <div id="c-rgb">rgb(0, 245, 200)</div>
+        </div>
+        <div class="color-code-box" onclick="copyColor('hsl')" title="Klik untuk copy">
+          <div class="cc-label">HSL</div>
+          <div id="c-hsl">hsl(168, 100%, 48%)</div>
+        </div>
+        <div class="color-code-box" onclick="copyColor('css')" title="Klik untuk copy">
+          <div class="cc-label">CSS Var</div>
+          <div id="c-css">--color: #00f5c8</div>
+        </div>
+      </div>
+      <p style="color:var(--muted);font-size:0.78rem;margin-top:10px;">💡 Klik kotak kode untuk copy ke clipboard</p>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ---- NAVIGATION ----
+function showSection(id) {
+  document.querySelectorAll('.tool-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.textContent.toLowerCase().includes(id === 'home' ? 'home' :
+        id === 'vercel' ? 'vercel' : id === 'calculator' ? 'kalkulator' :
+        id === 'bio' ? 'biografi' : id === 'qr' ? 'qr' :
+        id === 'wordcount' ? 'word' : id === 'age' ? 'umur' :
+        id === 'password' ? 'password' : 'color')) {
+      n.classList.add('active');
+    }
+  });
+  closeSidebar();
+  if (id === 'bio') calcBioAge();
+  if (id === 'color') updateColor('#00f5c8');
+}
+
+function toggleSidebar() {
+  const s = document.getElementById('sidebar');
+  const o = document.getElementById('overlay');
+  const h = document.getElementById('hamburger');
+  s.classList.toggle('open');
+  o.classList.toggle('show');
+  h.classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('hamburger').classList.remove('open');
+}
+
+// ---- VERCEL TOOL ----
+function generateVercel() {
+  const name = document.getElementById('v-name').value.trim() || 'my-project';
+  const html = document.getElementById('v-html').value.trim();
+  if (!html) { alert('Masukkan konten HTML dulu!'); return; }
+  const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const content = `📁 STRUKTUR PROYEK: ${slug}/
+─────────────────────────────
+📄 index.html
+▼ ISI index.html:
+─────────────────────────────
+${html}
+
+─────────────────────────────
+📋 LANGKAH DEPLOY KE VERCEL:
+─────────────────────────────
+1. Buat folder baru bernama: ${slug}
+2. Simpan kode di atas sebagai: index.html
+3. Buka https://vercel.com → Login
+4. Klik "Add New Project"
+5. Upload folder "${slug}"
+6. Klik Deploy ✅
+7. Website live di: https://${slug}.vercel.app
+
+💡 Tips: Tambahkan ke GitHub dulu agar auto-deploy tiap update!`;
+  document.getElementById('result-content').textContent = content;
+  document.getElementById('result-box').style.display = 'block';
+}
+function clearVercel() {
+  document.getElementById('v-name').value = '';
+  document.getElementById('v-html').value = '';
+  document.getElementById('result-box').style.display = 'none';
+}
+function copyResult() {
+  const text = document.getElementById('result-content').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy', 1500);
+  });
+}
+
+// ---- CALCULATOR ----
+let calcState = { display: '0', expr: '', op: null, prev: null, reset: false };
+function calcUpdate() {
+  document.getElementById('calc-result').textContent = calcState.display;
+  document.getElementById('calc-expr').textContent = calcState.expr;
+}
+function calcNum(n) {
+  if (calcState.reset) { calcState.display = n; calcState.reset = false; }
+  else calcState.display = calcState.display === '0' ? n : calcState.display + n;
+  calcUpdate();
+}
+function calcDot() {
+  if (calcState.reset) { calcState.display = '0.'; calcState.reset = false; return calcUpdate(); }
+  if (!calcState.display.includes('.')) calcState.display += '.';
+  calcUpdate();
+}
+function calcOp(op) {
+  calcState.prev = parseFloat(calcState.display);
+  calcState.op = op;
+  calcState.expr = calcState.display + ' ' + {'+':'+','-':'−','*':'×','/':'÷'}[op];
+  calcState.reset = true;
+  calcUpdate();
+}
+function calcEqual() {
+  if (!calcState.op) return;
+  const cur = parseFloat(calcState.display);
+  let res;
+  switch (calcState.op) {
+    case '+': res = calcState.prev + cur; break;
+    case '-': res = calcState.prev - cur; break;
+    case '*': res = calcState.prev * cur; break;
+    case '/': res = cur === 0 ? 'Error' : calcState.prev / cur; break;
+  }
+  calcState.expr = '';
+  calcState.display = res === 'Error' ? 'Error' : String(parseFloat(res.toFixed(10)));
+  calcState.op = null; calcState.reset = true;
+  calcUpdate();
+}
+function calcClear() { calcState = { display: '0', expr: '', op: null, prev: null, reset: false }; calcUpdate(); }
+function calcSign() { if (calcState.display !== '0') { calcState.display = String(parseFloat(calcState.display) * -1); calcUpdate(); } }
+function calcPercent() { calcState.display = String(parseFloat(calcState.display) / 100); calcUpdate(); }
+
+// ---- BIO AGE ----
+function calcBioAge() {
+  const dob = new Date('2010-07-07');
+  const now = new Date();
+  let y = now.getFullYear() - dob.getFullYear();
+  let m = now.getMonth() - dob.getMonth();
+  let d = now.getDate() - dob.getDate();
+  if (d < 0) { m--; d += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
+  if (m < 0) { y--; m += 12; }
+  document.getElementById('bio-age').textContent = y + ' tahun ' + m + ' bulan ' + d + ' hari';
+  document.getElementById('bio-age-detail').textContent = 'Per ' + now.toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'});
+}
+
+// ---- QR GENERATOR ----
+function generateQR() {
+  const text = document.getElementById('qr-input').value.trim();
+  const size = document.getElementById('qr-size').value;
+  if (!text) { alert('Masukkan teks atau URL dulu!'); return; }
+  const url = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&color=00f5c8&bgcolor=111118`;
+  document.getElementById('qr-output').innerHTML = `<img src="${url}" width="${size}" height="${size}" alt="QR Code"><br><a href="${url}" download="qr-code.png"><button class="btn btn-secondary" style="margin-top:12px;">⬇ Download QR</button></a>`;
+}
+
+// ---- WORD COUNTER ----
+function countWords() {
+  const t = document.getElementById('wc-input').value;
+  const words = t.trim() === '' ? 0 : t.trim().split(/\s+/).length;
+  const chars = t.length;
+  const charsNo = t.replace(/\s/g, '').length;
+  const sentences = t === '' ? 0 : (t.match(/[.!?]+/g) || []).length;
+  const paras = t.trim() === '' ? 0 : t.trim().split(/\n\s*\n/).length;
+  const readMin = Math.ceil(words / 200);
+  document.getElementById('wc-words').textContent = words;
+  document.getElementById('wc-chars').textContent = chars;
+  document.getElementById('wc-chars-no').textContent = charsNo;
+  document.getElementById('wc-sent').textContent = sentences;
+  document.getElementById('wc-para').textContent = paras;
+  document.getElementById('wc-read').textContent = readMin < 1 ? '<1' : readMin;
+}
+
+// ---- AGE CALCULATOR ----
+function calculateAge() {
+  const val = document.getElementById('age-input').value.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(val)) { document.getElementById('age-result-box').style.display = 'none'; return; }
+  const dob = new Date(val);
+  if (isNaN(dob)) { document.getElementById('age-result-box').style.display = 'none'; return; }
+  const now = new Date();
+  let y = now.getFullYear() - dob.getFullYear();
+  let mo = now.getMonth() - dob.getMonth();
+  let d = now.getDate() - dob.getDate();
+  if (d < 0) { mo--; d += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
+  if (mo < 0) { y--; mo += 12; }
+  // days until next birthday
+  let next = new Date(now.getFullYear(), dob.getMonth(), dob.getDate());
+  if (next < now) next.setFullYear(next.getFullYear() + 1);
+  const diff = Math.round((next - now) / (1000*60*60*24));
+  document.getElementById('age-years').textContent = y + ' Tahun';
+  document.getElementById('age-detail').textContent = mo + ' bulan ' + d + ' hari lebih';
+  document.getElementById('age-months').textContent = mo;
+  document.getElementById('age-days').textContent = d;
+  document.getElementById('age-next').textContent = diff === 0 ? '🎉' : diff;
+  document.getElementById('age-result-box').style.display = 'block';
+}
+
+// ---- PASSWORD ----
+function generatePassword() {
+  const len = parseInt(document.getElementById('pw-len').value);
+  const up = document.getElementById('pw-upper').checked;
+  const lo = document.getElementById('pw-lower').checked;
+  const nu = document.getElementById('pw-num').checked;
+  const sy = document.getElementById('pw-sym').checked;
+  let chars = '';
+  if (up) chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  if (lo) chars += 'abcdefghijklmnopqrstuvwxyz';
+  if (nu) chars += '0123456789';
+  if (sy) chars += '!@#$%^&*()-_=+[]{}|;:,.<>?';
+  if (!chars) { alert('Pilih minimal satu tipe karakter!'); return; }
+  let pw = '';
+  for (let i = 0; i < len; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+  document.getElementById('pw-output').textContent = pw;
+}
+function copyPw() {
+  const pw = document.getElementById('pw-output').textContent;
+  if (pw === 'Klik Generate ↓') return;
+  navigator.clipboard.writeText(pw).then(() => {
+    const btn = document.querySelectorAll('#section-password .btn')[1];
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy', 1500);
+  });
+}
+
+// ---- COLOR PICKER ----
+function updateColor(hex) {
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
+  document.getElementById('color-preview').style.background = hex;
+  document.getElementById('color-input').value = hex;
+  document.getElementById('color-hex-in').value = hex;
+  document.getElementById('c-hex').textContent = hex.toUpperCase();
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  document.getElementById('c-rgb').textContent = `rgb(${r}, ${g}, ${b})`;
+  // to HSL
+  const rn = r/255, gn = g/255, bn = b/255;
+  const max = Math.max(rn,gn,bn), min = Math.min(rn,gn,bn);
+  let h, s, l = (max+min)/2;
+  if (max === min) { h = s = 0; } else {
+    const d = max - min;
+    s = l > 0.5 ? d/(2-max-min) : d/(max+min);
+    switch(max) {
+      case rn: h = ((gn-bn)/d + (gn<bn?6:0))/6; break;
+      case gn: h = ((bn-rn)/d + 2)/6; break;
+      case bn: h = ((rn-gn)/d + 4)/6; break;
+    }
+  }
+  const H = Math.round(h*360), S = Math.round(s*100), L = Math.round(l*100);
+  document.getElementById('c-hsl').textContent = `hsl(${H}, ${S}%, ${L}%)`;
+  document.getElementById('c-css').textContent = `--color: ${hex.toUpperCase()}`;
+}
+function hexInputChange() {
+  const v = document.getElementById('color-hex-in').value.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(v)) updateColor(v);
+}
+let colorData = {};
+function copyColor(type) {
+  const map = { hex: 'c-hex', rgb: 'c-rgb', hsl: 'c-hsl', css: 'c-css' };
+  const text = document.getElementById(map[type]).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const el = document.getElementById(map[type]);
+    const orig = el.textContent;
+    el.textContent = '✅ Copied!';
+    setTimeout(() => el.textContent = orig, 1200);
+  });
+}
+
+// Init
+updateColor('#00f5c8');
+calcBioAge();
+</script>
+</body>
+</html>
